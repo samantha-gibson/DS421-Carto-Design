@@ -89,10 +89,10 @@ wildfire_counts <- wildfire_shp_data %>%
 ```
 
 ```{r}
-ggplot(data = wildfire_counts),
-aes(y)
+ggplot(data = wildfire_counts, aes(y = number_of_fires, x = ACQ_DATE)) +
 geom_line(color = "blue", size = 1) +
-  geom_point( color = "black", size = 3) +
+  geom_point(color = "black", size = 3) + 
+  theme_minimal()
   
 ```
 
@@ -100,9 +100,11 @@ geom_line(color = "blue", size = 1) +
 
 ## 📈 Challenge 2
 
-Use ggplot to create a stacked bar chart colored by category with numer of fires on the y axis for each day
+Use ggplot to create a stacked bar chart colored by category with number of fires on the y axis for each day
 
 ```{r}
+ggplot(data = wildfire_shp_data, aes(x= ACQ_DATE, fill = CONFIDENCE)) +
+  geom_bar()
 
 ```
 
@@ -247,7 +249,42 @@ Download the LANDSAT 30m CSV for USA (Conterminous) and Hawaii at the bottom rig
 -   Map the data with any package you would like, just make sure there is at least a slight difference from the examples above, be as creative as possible while utilizing your critical thinking
 
 ```{r}
+# READ IN CSV AS DATAFRAME
+landsat_df <- read.csv("LANDSAT_USA_contiguous_and_Hawaii_7d.csv")
 
+# TRANSFORM DATAFRAME INTO SF OBJECT 
+landsat_df <- st_as_sf(landsat_df, coords = c("longitude", "latitude"), crs = 4326)
+
+confidence_colors <- c(
+  "low" = "lightblue",
+  "medium" = "blue",
+  "high" = "darkblue"
+)
+
+mapboxgl(bounds = landsat_df) |>
+  add_circle_layer(
+    id = "wildfires_categorical",
+    source = landsat_df,
+    circle_color = match_expr(
+      column = "confidence",
+      values = names(confidence_colors),
+      stops = unname(confidence_colors)
+    ),
+    circle_radius = 4,
+    circle_opacity = 0.7,
+    popup = "ACQ_DATE",
+    tooltip = "CONFIDENCE",
+    hover_options = list(
+      circle_color = "black",
+      circle_radius = 6
+    )
+  ) |>
+  add_legend(
+    "Confidence Level",
+    values = names(confidence_colors),
+    colors = unname(confidence_colors),
+    type = "categorical"
+  )
 ```
 
 ## ✨ Summary

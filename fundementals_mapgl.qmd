@@ -127,7 +127,28 @@ hi_map |>
 Replace `plasma` with another palette (e.g., `viridis`, `magma`, or `cividis`). Which one feels the most readable? Why?
 
 ```{r}
-palette = magma
+continuous_scale <- interpolate_palette(
+  data = hi_median_income,
+  column = "estimate",
+  method = "equal",
+  n = 5,
+  palette = plasma
+)
+
+hi_map |>
+  add_fill_layer(
+    id = "hi_tracts",
+    source = hi_median_income,
+    fill_color = continuous_scale$expression,
+    fill_opacity = 0.5
+  ) |>
+  add_legend(
+    "Median Income in Hawaii",
+    values = get_legend_labels(continuous_scale, digits = 0),
+    colors = get_legend_colors(continuous_scale),
+    type = "continuous"
+  )
+
 ```
 
 Document your reasoning in a comment above your code.
@@ -233,6 +254,53 @@ How does your choice affect the message your map conveys?
 💬 *What looks more balanced? Which palette aligns with your intended story?*
 
 Write 1–2 sentences reflecting on the **cartographic message** your choices imply.
+
+```{r}
+q_class <- step_equal_interval(
+  data = hi_median_income,
+  column = "estimate",
+  n = 5,
+  colors = RColorBrewer::brewer.pal(5, "PRGn")
+)
+
+hi_map |>
+  add_fill_layer(
+    id = "hi_tracts",
+    source = hi_median_income,
+    fill_color = q_class$expression,
+    fill_opacity = 0.5
+  ) |>
+  add_legend(
+    "Median Income in Hawaii",
+    values = get_legend_labels(q_class, digits = 0, suffix = " $"),
+    colors = get_legend_colors(q_class),
+    type = "categorical"
+  )
+
+```
+
+```{r}
+q_class <- step_jenks(
+  data = hi_median_income,
+  column = "estimate",
+  n = 5,
+  colors = RColorBrewer::brewer.pal(5, "PRGn")
+)
+
+hi_map |>
+  add_fill_layer(
+    id = "hi_tracts",
+    source = hi_median_income,
+    fill_color = q_class$expression,
+    fill_opacity = 0.5
+  ) |>
+  add_legend(
+    "Median Income in Hawaii",
+    values = get_legend_labels(q_class, digits = 0, suffix = " $"),
+    colors = get_legend_colors(q_class),
+    type = "categorical"
+  )
+```
 
 ------------------------------------------------------------------------
 
@@ -341,8 +409,7 @@ Load median income, rent, or internet access for a different state using `tidyce
 
 #### California Example
 
-```{r}
-# Example: Median income in California
+```{r}# Example: Median income in California}
 ca_income <- get_acs(
   geography = "tract",
   variables = "B19013_001",
@@ -372,6 +439,44 @@ mapboxgl(bounds = ca_income) |>
     colors = get_legend_colors(ca_scale),
     type = "continuous"
   )
+
+
+```
+
+```{r}
+# Example: Median age in New Jersey
+
+library(tidycensus)
+library(tidyverse)
+
+nj_age <- get_acs(
+  geography = "tract",
+  variables = "B01002_001",
+  state = "NJ",
+  year = 2022,
+  geometry = TRUE
+)
+nj_scale <- interpolate_palette(
+  data = nj_age,
+  column = "estimate",
+  method = "equal",
+  n = 4,
+  palette = viridisLite::viridis
+)
+mapboxgl(bounds = nj_age) |>
+  add_fill_layer(
+    id = "nj_scale",
+    source = nj_age,
+    fill_color = nj_scale$expression,
+    fill_opacity = 0.5
+  ) |>
+  add_legend(
+    "Median Age in New Jersey",
+    values = get_legend_labels(nj_scale, digits = 0, prefix = "age"),
+    colors = get_legend_colors(nj_scale),
+    type = "continuous"
+  )
+
 
 ```
 
