@@ -1,0 +1,191 @@
+####Assignment 2 
+
+```{r}
+library(shiny)
+library(mapgl)
+library(here)
+library(sf)
+library(viridis)
+library(tidyverse)
+library(scales)
+
+# ---- Load your data ----
+# If not already loaded in R, load from .gpkg
+county_data <- st_read(here("county_data.gpkg"))
+
+# Fix geometry column if named "geom"
+if (!"geometry" %in% names(county_data) && "geom" %in% names(county_data)) {
+  names(county_data)[names(county_data) == "geom"] <- "geometry"
+}
+st_geometry(county_data) <- "geometry"
+
+# Drop empty and invalid geometries
+county_data <- county_data %>%
+  filter(!st_is_empty(geometry)) %>%
+  st_transform(4326)
+
+# Language options
+available_languages <- county_data %>%
+  filter(!is.na(language), language != "Total") %>%
+  pull(language) %>%
+  unique() %>%
+  sort()
+
+# ---- UI ----
+ui <- fluidPage(
+  titlePanel("Language Speakers by County"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "language",
+        label = "Select a Language:",
+        choices = available_languages,
+        selected = "Spanish"
+      )
+    ),
+    mainPanel(
+      maplibreOutput("map", height = "600px")
+    )
+  )
+)
+
+# ---- Server ----
+server <- function(input, output, session) {
+
+  filtered_data <- reactive({
+    req(input$language)
+
+    county_data %>%
+      filter(language.y == input$language) %>%
+      mutate(
+        geoname = coalesce(geoname.y, "Unknown"),
+        language = coalesce(language.y, "Unknown"),
+        speakers = coalesce(speakers.y, 0),
+        percent = coalesce(percent_speakers.y, 0)
+      )
+  })
+
+  output$map <- renderMaplibre({
+  # Quick test to see if geometry is valid and shows up
+  test_data <- county_data[1:50, ]
+
+  maplibre(style = carto_style("positron")) %>%
+    fit_bounds(test_data) %>%
+    add_fill_layer(
+      id = "test_layer",
+      source = test_data,
+      fill_color = "blue",
+      fill_opacity = 0.5,
+      popup = test_data$GEOID
+    )
+})
+
+}
+
+# ---- Run the App ----
+shinyApp(ui = ui, server = server)
+
+```
+
+
+
+
+
+
+```{r}
+names(county_data)
+
+```
+
+```{r}
+
+library(shiny)
+library(mapgl)
+library(here)
+library(sf)
+library(viridis)
+library(tidyverse)
+library(scales)
+
+# ---- Load your data ----
+county_data <- st_read(here("county_data.gpkg"))
+
+# Ensure geometry is properly set
+st_geometry(county_data) <- "geometry"
+
+# Drop empty or invalid geometries and transform to WGS84
+county_data <- county_data %>%
+  filter(!st_is_empty(geometry)) %>%
+  st_transform(4326)
+
+# Create list of available languages (excluding "Total")
+available_languages <- county_data %>%
+  filter(!is.na(language), language != "Total") %>%
+  pull(language) %>%
+  unique() %>%
+  sort()
+
+# ---- UI ----
+ui <- fluidPage(
+  titlePanel("Language Speakers by County"),
+
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "language",
+        label = "Select a Language:",
+        choices = available_languages,
+        selected = "Spanish"
+      )
+    ),
+    mainPanel(
+      maplibreOutput("map", height = "600px")
+    )
+  )
+)
+
+# ---- Server ----
+server <- function(input, output, session) {
+
+  filtered_data <- reactive({
+    req(input$language)
+
+    county_data %>%
+      filter(language == input$language) %>%
+      mutate(
+        geoname = coalesce(geoname, "Unknown"),
+        language = coalesce(language, "Unknown"),
+        speakers = coalesce(speakers, 0),
+        percent = coalesce(percent_speakers, 0)
+      )
+  })
+
+  output$map <- renderMaplibre({
+    data <- filtered_data()
+    req(nrow(data) > 0)
+
+    # Scale percent_speakers to viridis color range
+    viridis_colors <- viridis(100)
+    color_indices <- round(scales::rescale(data$percent, to = c(1, 100)))
+    color_indices <- pmax(1, pmin(100, color_indices))
+    data$fill_color <- viridis_colors[color_indices]
+
+    maplibre(style = carto_style("positron")) %>%
+      fit_bounds(data, animate = FALSE) %>%
+      add_fill_layer(
+        id = "language_layer",
+        source = data,
+        fill_color = data$fill_color,
+        popup = paste0("<strong>", data$geoname, "</strong><br/>",
+                       "Language: ", data$language, "<br/>",
+                       "Speakers: ", data$speakers, "<br/>",
+                       "Percent: ", round(data$percent, 2), "%")
+      )
+  })
+
+}
+# ---- Run the App ----
+shinyApp(ui = ui, server = server)
+
+```
+
