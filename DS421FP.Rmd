@@ -170,6 +170,17 @@ springs_sf <- st_as_sf(
 
 kanewai_isochrone <- mb_isochrone(kanewai_coords, profile = "driving", time = 20)
 
+# Define Kalanianaʻole Hwy route as LINESTRING
+kalanianaole_route <- st_sfc(
+  st_linestring(matrix(c(
+    -157.779658, 21.277743,  # Start point (lng, lat)
+    -157.724882, 21.285436   # End point (lng, lat)
+  ), ncol = 2, byrow = TRUE)),
+  crs = 4326
+) %>%
+  st_sf(name = "Kalanianaʻole Hwy Segment", geometry = .)
+
+
 # ---- UI ----
 ui <- fluidPage(
   tags$link(href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap", rel = "stylesheet"),
@@ -204,7 +215,14 @@ ui <- fluidPage(
         content = list(
           p("Within a 20-minute drive of Kānewai Spring are key East Honolulu landmarks and communities.")
         )
-      )
+      ),
+      kalanianaole_highway = story_section(
+  title = "Kalanianaʻole Highway Segment",
+  content = list(
+    p("This segment of Kalanianaʻole Hwy highlights a key corridor between Kānewai Spring and the southeastern coastline.")
+  )
+)
+
     )
   )
 )
@@ -293,6 +311,28 @@ server <- function(input, output, session) {
         pitch = 45
       )
   })
+  
+  on_section("spring_map", "kalanianaole_highway", {
+  mapboxgl_proxy("spring_map") |>
+    clear_layer("isochrone_layer") |>
+    clear_layer("kanewai_layer") |>
+    clear_layer("kalauhaihai_layer") |>
+    clear_layer("kanewai_route_line") |>
+    add_source("kalanianaole_route", data = kalanianaole_route) |>
+    add_line_layer(
+      id = "kalanianaole_route_line",
+      source = "kalanianaole_route",
+      line_color = "#E69F00",
+      line_width = 4
+    ) |>
+    fit_bounds(
+      kalanianaole_route,
+      padding = 50,
+      animate = TRUE,
+      duration = 3000
+    )
+})
+
   
   # ---- Kanewai Plot ----
   output$kanewai_plot <- renderPlotly({
@@ -395,4 +435,6 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 
 ```
+
+
 
