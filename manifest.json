@@ -3,15 +3,11 @@
   "locale": "en_US",
   "platform": "4.4.1",
   "metadata": {
-    "appmode": "quarto-static",
-    "primary_rmd": "assignment2.Rmd",
+    "appmode": "shiny",
+    "primary_rmd": null,
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
-  },
-  "quarto": {
-    "version": "1.4.555",
-    "engines": ["knitr"]
   },
   "packages": {
     "DBI": {
@@ -5507,7 +5503,10 @@
   },
   "files": {
     ".RData": {
-      "checksum": "53875249be1ac00b8a4760f8f38d35a6"
+      "checksum": "1ca77f804dfb5c763d1604bde0d3eb80"
+    },
+    "app.r": {
+      "checksum": "6522f94e85e88725967442f13ee06019"
     },
     "assignment2.md": {
       "checksum": "2038d42829db7b027a72cdd472ad81e2"
@@ -5559,9 +5558,6 @@
     },
     "DS421FP.html": {
       "checksum": "330f581483dde44cca44a37e954c61c1"
-    },
-    "DS421FP.R": {
-      "checksum": "6d87574a26472dbd7c31bb24a25120df"
     },
     "DS421FP.Rmd": {
       "checksum": "90436f5e6c4126f97b7117ae39612b96"
