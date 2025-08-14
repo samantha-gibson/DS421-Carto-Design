@@ -170,16 +170,6 @@ springs_sf <- st_as_sf(
 
 kanewai_isochrone <- mb_isochrone(kanewai_coords, profile = "driving", time = 20)
 
-# Define Kalanianaʻole Hwy route as LINESTRING
-kalanianaole_route <- st_sfc(
-  st_linestring(matrix(c(
-    -157.779658, 21.277743,  # Start point (lng, lat)
-    -157.724882, 21.285436   # End point (lng, lat)
-  ), ncol = 2, byrow = TRUE)),
-  crs = 4326
-) %>%
-  st_sf(name = "Kalanianaʻole Hwy Segment", geometry = .)
-
 
 # ---- UI ----
 ui <- fluidPage(
@@ -189,40 +179,65 @@ ui <- fluidPage(
     map_id = "spring_map",
     font_family = "Poppins",
     sections = list(
-      intro = story_section(
+      
+      "intro" = story_section(
         title = "Story Map: Kānewai & Kalauhaʻihaʻi Springs",
         content = list(
-          p("Explore Native Hawaiian loko iʻa in East Honolulu with conductivity data and temperature data on the dates of recent king tides.")
+          p("Explore Native Hawaiian loko iʻa in East Honolulu with conductivity data and temperature data on the dates of recent king tides."),
+          
+          tags$div(
+            style = "background-color: #f9f9f9; border-left: 5px solid #00727B; padding: 12px; margin-top: 15px; border-radius: 6px;",
+            tags$p(
+              style = "margin-bottom: 8px;",
+              strong("What is Conductivity?"),
+              "Specific conductance measures the water’s ability to carry an electrical current, which relates to the amount of dissolved salts or minerals present in the water. Monitoring conductivity helps identify changes in water quality that could affect aquatic life."
+            ),
+            tags$p(
+              strong("Why Study Temperature?"),
+              "Studying temperature works hand in hand with looking at conductivity data because it gives more insight towards understanding aspects of water quality. Warm water changes how fresh and salt water mix, affects oxygen levels, and can stress aquatic life which makes it an important factor when studying the effects of king tides on smaller bodies of water."
+            ),
+            tags$p(
+              strong("What is a King Tide?"),
+              "King tides are unusually high tide events caused by the combined effects of gravitational pull from the moon and sun. In Hawaiʻi, these tides can flood coastal areas, impact infrastructure, and influence water quality in springs and fishponds."
+            ),
+            tags$p(
+        strong("Why Study These Data Points Together? "),
+        "King tides can push seawater into springs and fishponds, temporarily raising conductivity. Having the ability to track temperature and conductivity in relation to king tide dates differentiates short-term tidal effects from long-term environmental changes like sea level rise."
+      )
+          )
         ),
         position = "center"
       ),
-      kanewai_marker = story_section(
+      
+      "kanewai_marker" = story_section(
         title = "Kānewai Spring Location",
         content = list(
-          p("Located at 5975 HI-72, Kānewai Spring: An important traditional freshwater source for the local community.On June 24 peak conductivity data was collected. As shown on the chart below, Specific Conductance was recorded at 697.7079µS/cm which is the highest recorded conductivity reading within this current data set"),
+          p("Located at 5975 HI-72, Kānewai Spring: An important traditional freshwater source for the local community. The highlighted portion in yellow contains the dates of the most recent king tides. On June 24 peak conductivity data was collected. As shown on the chart below, Specific Conductance was recorded at 697.7µS/cm which the highest recorded conductivity reading in this dataset."),
           plotlyOutput("kanewai_plot", height = "350px", width = "500px")
         )
       ),
-      kalauhaihai_marker = story_section(
+      
+      "kalauhaihai_marker" = story_section(
         title = "Kalauhaʻihaʻi Fishpond",
         content = list(
-          p("Kalauhaʻihaʻi: a spring-fed loko iʻa in Maunalua Bay with ongoing restoration efforts.  "),
+          p("Kalauhaʻihaʻi: a spring-fed loko iʻa in Maunalua Bay with ongoing restoration efforts. Monitoring activities at this site continue to provide insight of the overall health of the fishpond. The highlighted portion similar to the graph above represents the dates of the most recent king tides that occurred on Oahu this summer. During the king tides the Specific Conductance was recorded between 624.9µS/cm and 617.7µS/cm from June 22nd to June 24th. This is unusual for this site as data from dates outside of the king tides vary from high readings to low readings. As an example on June 5th Specific Conductance was recorded at 643.1µS/cm and on June 6th it was recorded at 318.3µS/cm."),
           plotlyOutput("kalauhaihai_plot", height = "350px", width = "500px")
         )
       ),
-      kanewai_isochrone = story_section(
+      
+      "kanewai_isochrone" = story_section(
         title = "Kānewai Spring Isochrone",
         content = list(
-          p("Within a 20-minute drive of Kānewai Spring are key East Honolulu landmarks and communities.")
+          p("Within a 20-minute drive of Kānewai Spring are key East Honolulu landmarks and communities. Combining historic and culturally significant sites along with lively residential communities this stretch of Oahu is essential to the daily lives of many residents in Honolulu. This part of Oʻahu is also characterized by its urban environment that supports the island’s main business district.")
         )
       ),
-      kalanianaole_highway = story_section(
-  title = "Kalanianaʻole Highway Segment",
-  content = list(
-    p("This segment of Kalanianaʻole Hwy highlights a key corridor between Kānewai Spring and the southeastern coastline.")
-  )
-)
-
+      
+      "kalanianaole_highway" = story_section(
+        title = "Kalanianaʻole Highway Segment",
+        content = list(
+          p("This segment of Kalanianaʻole Hwy highlights a key commuting route for many residents and visitors of Oahu. Historically, during the construction of this highway, the lava tube that feeds fresh water was damaged and could no longer provide fresh water to Kalauhaʻihaʻi. Over time, residential construction reshaped the original Kānewai Spring site, and privatization of the area eventually led to its decline and loss of some traditional functions. Restoration efforts include restoring the flow of freshwater to both sites in order to improve water quality.")
+        )
+      )
     )
   )
 )
@@ -317,19 +332,12 @@ server <- function(input, output, session) {
     clear_layer("isochrone_layer") |>
     clear_layer("kanewai_layer") |>
     clear_layer("kalauhaihai_layer") |>
-    clear_layer("kanewai_route_line") |>
-    add_source("kalanianaole_route", data = kalanianaole_route) |>
-    add_line_layer(
-      id = "kalanianaole_route_line",
-      source = "kalanianaole_route",
-      line_color = "#E69F00",
-      line_width = 4
-    ) |>
-    fit_bounds(
-      kalanianaole_route,
-      padding = 50,
-      animate = TRUE,
-      duration = 3000
+    fly_to(
+      center = c(-157.7275, 21.2835),  # approximate center along Kalanianaʻole Hwy
+      zoom = 15,
+      pitch = 30,
+      bearing = 0
+
     )
 })
 
