@@ -29,9 +29,8 @@ names(clean_kgcd)[names(clean_kgcd) == "Date.Time..GMT.10.00"] <- "Date.Time"
 ## ------------------------------------------------------------------------
 # MAPBOX_API_TOKEN=pk.eyJ1Ijoic2FtYW50aGFnaWJzb24iLCJhIjoiY21jdmd2c243MDBlYzJycHdjenkyaW5jdyJ9.QnSPG2e5GSR0VDO5bUJwdw
 
-Sys.setenv(MAPBOX_API_TOKEN = "pk.eyJ1Ijoic2FtYW50aGFnaWJzb24iLCJhIjoiY21jdmd2c243MDBlYzJycHdjenkyaW5jdyJ9.QnSPG2e5GSR0VDO5bUJwdw")
-mb_access_token(Sys.getenv("MAPBOX_API_TOKEN"))
-
+Sys.setenv(MAPBOX_PUBLIC_TOKEN = "pk.eyJ1IjoiY29ubm9yZmx5bm4iLCJhIjoiY2x5cWFtZzk0MGU4MzJqb2F0a2w1bGJkZiJ9.fB81ysj5JOrG16upKvzk4A
+")
 
 ## ------------------------------------------------------------------------
 kanewai <- mb_geocode("5975 HI-72, Honolulu, HI 96821", output = "sf")
